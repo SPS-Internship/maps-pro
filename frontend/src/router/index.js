@@ -3,6 +3,7 @@ import Login from '../pages/Login.vue'
 import Dashboard from '../pages/Dashboard.vue'
 import Maps from '../pages/Maps.vue'
 import OdpList from '../pages/OdpList.vue'
+import Coverage from '../pages/Coverage.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -21,7 +22,11 @@ const routes = [
     path: '/odp',
     component: OdpList,
     meta: { layout: 'default', requiresAuth: true }
-  }
+  },
+  {
+    path: '/coverage',
+    component: Coverage
+  },
 ]
 
 const router = createRouter({
