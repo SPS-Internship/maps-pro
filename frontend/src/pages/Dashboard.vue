@@ -1,7 +1,8 @@
 <template> 
   <div class="p-6 space-y-6">
     <!-- Summary Card -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Total ODP -->
       <div class="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
         <div>
           <h2 class="text-gray-500 text-sm font-medium">Total ODP</h2>
@@ -15,6 +16,39 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M17 20h5v-2a3 3 0 00-3-3h-4m-4 0H7a3 3 0 00-3 3v2h5m4-10a4 4 0 100-8 4 4 0 000 8z" />
           </svg>
+        </div>
+      </div>
+
+      <!-- Radius Malang -->
+      <div class="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-gray-500 text-sm font-medium">Radius Malang</h2>
+          <p class="text-2xl font-bold text-gray-800">
+            <span v-if="loading">...</span>
+            <span v-else>{{ radiusMalang.toFixed(2) }} km</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Radius Pasuruan -->
+      <div class="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-gray-500 text-sm font-medium">Radius Pasuruan</h2>
+          <p class="text-2xl font-bold text-gray-800">
+            <span v-if="loading">...</span>
+            <span v-else>{{ radiusPasuruan.toFixed(2) }} km</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Radius Batu -->
+      <div class="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-gray-500 text-sm font-medium">Radius Batu</h2>
+          <p class="text-2xl font-bold text-gray-800">
+            <span v-if="loading">...</span>
+            <span v-else>{{ radiusBatu.toFixed(2) }} km</span>
+          </p>
         </div>
       </div>
     </div>
@@ -62,12 +96,59 @@ const totalOdp = ref(0)
 const summaryData = ref([])
 const loading = ref(true)
 
+const radiusMalang = ref(0)
+const radiusPasuruan = ref(0)
+const radiusBatu = ref(0)
+
+// Titik nol kota
+const titikNol = {
+  malang: { lat: -7.9666, lng: 112.6326 },
+  pasuruan: { lat: -7.6453, lng: 112.9075 },
+  batu: { lat: -7.8714, lng: 112.5241 }
+}
+
+// Fungsi hitung jarak haversine
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371 // radius bumi km
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
 onMounted(async () => {
   try {
     const res = await fetch("http://localhost/maps-pro/backend/api/odp.php")
     const data = await res.json()
 
     totalOdp.value = data.length
+
+    // Hitung radius per kota
+    let totalMalang = 0, totalPasuruan = 0, totalBatu = 0
+
+    data.forEach(item => {
+      const lat = parseFloat(item.latitude)
+      const lng = parseFloat(item.longitude)
+
+      if (!lat || !lng) return
+
+      if (item.kabupaten?.toLowerCase().includes("malang")) {
+        totalMalang += haversine(titikNol.malang.lat, titikNol.malang.lng, lat, lng)
+      } else if (item.kabupaten?.toLowerCase().includes("pasuruan")) {
+        totalPasuruan += haversine(titikNol.pasuruan.lat, titikNol.pasuruan.lng, lat, lng)
+      } else if (item.kabupaten?.toLowerCase().includes("batu")) {
+        totalBatu += haversine(titikNol.batu.lat, titikNol.batu.lng, lat, lng)
+      }
+    })
+
+    radiusMalang.value = totalMalang
+    radiusPasuruan.value = totalPasuruan
+    radiusBatu.value = totalBatu6
 
     // Group data by kabupaten
     const grouped = {}
