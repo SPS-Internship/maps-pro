@@ -181,7 +181,7 @@ const updateUserMarker = (position) => {
 /* ---------------------- Map Init ---------------------- */
 onMounted(async () => {
   const loader = new Loader({
-    apiKey: 'AIzaSyA99VXYKlRV5wCubuIyXWdTGhSwkfyqeSc',
+    apiKey: 'AIzaSyBvC9jOhoQnKnYDDI9N4Q0oBG4w6U8ZM-I',
     version: 'weekly',
     libraries: ['places', 'geometry'],
   });
